@@ -12,7 +12,7 @@ source .env
 SERVICE_NAME="${SERVICE_NAME:-cross-platform-linker}"
 PROJECT_ID="${PROJECT_ID:-cartographer-a03db}"
 REGION="${REGION:-us-central1}"
-PORT="${PORT:-8083}"
+PORT="${PORT:-8080}"
 
 echo "🚀 Deploying Cross-Platform Linker Service to Google Cloud Run..."
 echo "   Project: $PROJECT_ID"
@@ -26,7 +26,7 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --project $PROJECT_ID \
-  --port $PORT \
+  --port 8080 \
   --memory 1Gi \
   --cpu 1 \
   --timeout 3600 \

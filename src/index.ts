@@ -46,7 +46,7 @@ class CrossPlatformLinkerService {
   }
 
   private loadConfiguration(): ServiceConfig {
-    const port = parseInt(process.env.PORT || '8083', 10)
+    const port = parseInt(process.env.PORT || '8080', 10)
     const logLevel = process.env.LOG_LEVEL || 'info'
 
     // Build Brainy configuration for write-optimized processing
@@ -108,7 +108,7 @@ class CrossPlatformLinkerService {
   private setupExpressApp() {
     // Health check endpoint
     this.app.get('/health', (req, res) => {
-      const status = {
+      const status: any = {
         status: 'healthy',
         timestamp: new Date().toISOString(),
         service: 'cross-platform-linker',
@@ -118,7 +118,7 @@ class CrossPlatformLinkerService {
       }
       
       if (this.augmentation) {
-        status['stats'] = this.augmentation.getStats()
+        status.stats = this.augmentation.getStats()
       }
       
       res.json(status)
@@ -187,8 +187,8 @@ class CrossPlatformLinkerService {
       logger.info('Cross-platform linking augmentation initialized successfully')
       
       // Add augmentation to Brainy (if supported)
-      if (typeof this.brainyDB.addAugmentation === 'function') {
-        this.brainyDB.addAugmentation(this.augmentation)
+      if (typeof (this.brainyDB as any).addAugmentation === 'function') {
+        (this.brainyDB as any).addAugmentation(this.augmentation)
         logger.info('Augmentation added to Brainy pipeline')
       }
 
@@ -224,8 +224,8 @@ class CrossPlatformLinkerService {
         await this.augmentation.cleanup()
       }
       
-      if (this.brainyDB && typeof this.brainyDB.close === 'function') {
-        await this.brainyDB.close()
+      if (this.brainyDB && typeof (this.brainyDB as any).close === 'function') {
+        await (this.brainyDB as any).close()
       }
       
       logger.info('Service shutdown complete')

@@ -5,13 +5,15 @@
  * Optimized for background processing in a dedicated service
  */
 
-import { BrainyAugmentation, AugmentationType } from '@soulcraft/brainy'
+import { AugmentationType } from '@soulcraft/brainy'
 import { CrossPlatformLinker } from '../services/CrossPlatformLinker.js'
 
-export class CrossPlatformLinkingAugmentation implements BrainyAugmentation {
-  name = 'cross-platform-linking'
-  type = AugmentationType.COGNITION
-  priority = 100 // Run after other enrichments
+export class CrossPlatformLinkingAugmentation {
+  readonly name = 'cross-platform-linking'
+  readonly description = 'Links users across GitHub and Bluesky platforms'
+  readonly type = AugmentationType.COGNITION
+  readonly priority = 100 // Run after other enrichments
+  enabled = true
 
   private linker: CrossPlatformLinker
   private processedPersons = new Set<string>()
@@ -134,9 +136,9 @@ export class CrossPlatformLinkingAugmentation implements BrainyAugmentation {
     try {
       // Larger, more comprehensive searches for dedicated service
       const searchPromises = [
-        this.linker.brainyDB.searchText('github_user', 50),
-        this.linker.brainyDB.searchText('bluesky_user', 50),
-        this.linker.brainyDB.searchText('person', 30)
+        this.linker['brainyDB'].searchText('github_user', 50),
+        this.linker['brainyDB'].searchText('bluesky_user', 50),
+        this.linker['brainyDB'].searchText('person', 30)
       ]
       
       const searchResults = await Promise.all(searchPromises)

@@ -99,7 +99,7 @@ export class CrossPlatformLinker {
     if (name) {
       queries.push(`"${name}"`)
       // Split compound names
-      const nameParts = name.split(/\s+/).filter(part => part.length > 2)
+      const nameParts = name.split(/\s+/).filter((part: string) => part.length > 2)
       if (nameParts.length > 1) {
         queries.push(`"${nameParts[0]}" "${nameParts[nameParts.length - 1]}"`)
       }
