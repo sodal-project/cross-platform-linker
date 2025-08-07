@@ -42,7 +42,6 @@ gcloud run deploy $SERVICE_NAME \
   --set-env-vars "GCS_ACCESS_KEY_ID=$GCS_ACCESS_KEY_ID" \
   --set-env-vars "GCS_SECRET_ACCESS_KEY=$GCS_SECRET_ACCESS_KEY" \
   --set-env-vars "GCS_BUCKET_NAME=$GCS_BUCKET_NAME" \
-  --set-env-vars "PORT=$PORT" \
   --set-env-vars "LOG_LEVEL=info" \
   --set-env-vars "AUTO_START_PROCESSING=true" \
   --set-env-vars "BACKGROUND_PROCESSING_ENABLED=true" \
