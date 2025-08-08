@@ -1,6 +1,6 @@
 {
   "name": "cross-platform-linker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Dedicated service for linking people across GitHub and Bluesky platforms using Brainy vector database",
   "type": "module",
   "main": "dist/index.js",
