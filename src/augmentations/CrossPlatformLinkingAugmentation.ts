@@ -20,9 +20,20 @@ export class CrossPlatformLinkingAugmentation {
   private lastProcessedTime = new Date()
   private linkingEnabled: boolean
   private logger: any
+  private brainyDB: any
+  
+  // Storage throttling state
+  private storageThrottleState = {
+    isThrottled: false,
+    lastThrottleCheck: 0,
+    checkInterval: 60000, // Check every minute
+    backoffMs: 1000,
+    maxBackoffMs: 60000
+  }
 
   constructor(brainyDB: any, logger: any) {
     this.logger = logger
+    this.brainyDB = brainyDB
     this.linker = new CrossPlatformLinker(brainyDB, logger)
     
     // Always enabled in dedicated service
@@ -80,6 +91,13 @@ export class CrossPlatformLinkingAugmentation {
     let processedCount = 0
     
     try {
+      // Check if storage is throttled before processing
+      const isThrottled = await this.checkStorageThrottling()
+      if (isThrottled) {
+        this.logger.debug(`Skipping cross-platform linking due to storage throttling, backoff: ${this.storageThrottleState.backoffMs}ms`)
+        return 0
+      }
+      
       // Performance optimization: Only search if we haven't checked recently
       const timeSinceLastCheck = Date.now() - this.lastProcessedTime.getTime()
       if (timeSinceLastCheck < 15000) { // Less than 15 seconds
@@ -126,6 +144,55 @@ export class CrossPlatformLinkingAugmentation {
     } catch (error) {
       this.logger.warn('Intelligent people processing error:', error)
       return 0
+    }
+  }
+  
+  /**
+   * Check if storage is currently throttled using Brainy's throttling metrics
+   * Returns true if throttled and we should pause processing
+   */
+  private async checkStorageThrottling(): Promise<boolean> {
+    try {
+      // Only check periodically to avoid excessive calls
+      const now = Date.now()
+      if (now - this.storageThrottleState.lastThrottleCheck < this.storageThrottleState.checkInterval) {
+        return this.storageThrottleState.isThrottled
+      }
+      
+      this.storageThrottleState.lastThrottleCheck = now
+      
+      // Get throttling metrics from Brainy
+      const stats: any = await this.brainyDB.getStatistics()
+      
+      if (stats?.throttlingMetrics?.storage) {
+        const storageMetrics = stats.throttlingMetrics.storage
+        
+        // Check if currently throttled
+        if (storageMetrics.currentlyThrottled) {
+          this.storageThrottleState.isThrottled = true
+          
+          // Use the backoff time from Brainy if available
+          if (storageMetrics.currentBackoffMs > 0) {
+            this.storageThrottleState.backoffMs = storageMetrics.currentBackoffMs
+          }
+          
+          this.logger.warn(`⚠️ Storage is throttled. Pausing cross-platform linking. Backoff: ${this.storageThrottleState.backoffMs}ms, Total events: ${storageMetrics.totalThrottleEvents}`)
+          return true
+        } else {
+          // Storage is not throttled
+          if (this.storageThrottleState.isThrottled) {
+            this.logger.info('✅ Storage throttling cleared. Resuming cross-platform linking')
+          }
+          this.storageThrottleState.isThrottled = false
+          this.storageThrottleState.backoffMs = 1000
+        }
+      }
+      
+      return false
+    } catch (error) {
+      this.logger.error('Error checking storage throttling:', error)
+      // On error, assume not throttled to avoid blocking indefinitely
+      return false
     }
   }
   
